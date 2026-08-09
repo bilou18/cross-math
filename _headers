@@ -1,0 +1,7 @@
+# Code/styles: no cache-busting filenames yet, so keep this short. The
+# browser still avoids a full re-download on unchanged reloads via a cheap
+# 304 (ETag) instead of a fresh transfer.
+/script.js
+  Cache-Control: public, max-age=300, must-revalidate
+/styles.css
+  Cache-Control: public, max-age=300, must-revalidate
