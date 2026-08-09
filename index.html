@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Cross Math &mdash; Number Puzzle Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<!-- Pi Network SDK: required for Pi.init / Pi.authenticate / Pi.createPayment -->
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+</head>
+<body data-theme="ledger">
+
+<!-- ============ WELCOME VIEW ============ -->
+<section class="view active" id="view-welcome">
+  <div class="wrap">
+    <div class="logo-badge" aria-hidden="true">
+      <span class="num">7</span><span class="op">+</span><span class="num">5</span>
+      <span class="op">&minus;</span><span class="num">3</span><span class="eq">=</span>
+      <span class="num">9</span><span class="eq">=</span><span class="num">4</span>
+    </div>
+    <div class="title-block">
+      <div class="eyebrow">Number Puzzle</div>
+      <h1>Cross <em>Math</em></h1>
+      <p class="tagline">A crossword built from arithmetic. Fill every blank so each row and column adds up &mdash; literally.</p>
+    </div>
+
+    <div class="objective-card">
+      <h3>How it works</h3>
+      <p>Every row and column is its own equation. Drag numbers from the tray below into the blanks so <strong>every line across and down solves correctly</strong>, all at once. On lines with several operations, &times; and &divide; are always calculated before + and &minus;.</p>
+      <div class="example-row">
+        <span class="cell">7</span><span class="op">+</span><span class="cell">5</span><span class="op">=</span><span class="cell result">12</span>
+      </div>
+    </div>
+
+    <div style="width:100%;display:flex;flex-direction:column;gap:12px;">
+      <button class="btn btn-primary btn-block" id="btn-start">Play Now</button>
+      <button class="btn btn-ghost btn-block" data-nav="view-pi-store">&pi; Pi Features</button>
+      <div class="stat-line" id="welcome-stats">Loading your stats&hellip;</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THEME VIEW ============ -->
+<section class="view" id="view-theme">
+  <div class="wrap">
+    <div class="page-header">
+      <button class="icon-btn" data-nav="view-welcome">&larr;</button>
+      <div>
+        <h2>Choose a look</h2>
+        <div class="sub">Pick the palette you'll be solving in</div>
+      </div>
+    </div>
+
+    <div class="theme-grid" id="theme-grid"></div>
+
+    <div style="margin-top:auto;padding:24px 0 8px;">
+      <button class="btn btn-primary btn-block" data-nav="view-difficulty">Continue</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PI STORE VIEW ============ -->
+<section class="view" id="view-pi-store">
+  <div class="wrap" style="padding-bottom:40px;">
+    <div class="page-header">
+      <button class="icon-btn" data-nav="view-welcome">&larr;</button>
+      <div>
+        <h2>Pi Features</h2>
+        <div class="sub">Pay with your real Pi Network balance</div>
+      </div>
+    </div>
+
+    <div class="pi-intro">
+      <div class="glyph">&pi;</div>
+      <p>Tapping a price button opens the Pi payment sheet and charges your <strong>real</strong> Pi balance. Purchases are tied to your Pi account and carry over across devices.</p>
+    </div>
+
+    <div class="pi-section">
+      <div class="pi-section-title">Unlock levels</div>
+      <div id="pi-levels"></div>
+    </div>
+
+    <div class="pi-section">
+      <div class="pi-section-title">Power&#8209;ups</div>
+      <div class="pi-card">
+        <div class="pi-icon">&#128161;</div>
+        <div class="pi-info">
+          <div class="name">+3 Hints</div>
+          <div class="desc">Adds three hints to use on your current puzzle.</div>
+        </div>
+        <button class="pi-price-btn" data-buy="hints3"><span class="pi-symbol">&pi;</span> 0.5</button>
+      </div>
+      <div class="pi-card">
+        <div class="pi-icon">&#8617;</div>
+        <div class="pi-info">
+          <div class="name">+3 Undos</div>
+          <div class="desc">Adds three undos to use on your current puzzle.</div>
+        </div>
+        <button class="pi-price-btn" data-buy="undos3"><span class="pi-symbol">&pi;</span> 0.5</button>
+      </div>
+      <div class="pi-card">
+        <div class="pi-icon">&hearts;</div>
+        <div class="pi-info">
+          <div class="name">Refill lives</div>
+          <div class="desc">Instantly restores full lives on the puzzle you're playing.</div>
+        </div>
+        <button class="pi-price-btn" data-buy="lives"><span class="pi-symbol">&pi;</span> 0.75</button>
+      </div>
+      <div class="pi-card">
+        <div class="pi-icon">&#9202;</div>
+        <div class="pi-info">
+          <div class="name">+30 seconds</div>
+          <div class="desc">Meant to appear right as your countdown is running out.</div>
+        </div>
+        <button class="pi-price-btn" data-buy="time30"><span class="pi-symbol">&pi;</span> 0.5</button>
+      </div>
+    </div>
+
+    <div class="pi-section">
+      <div class="pi-section-title">Exclusive themes</div>
+      <div class="theme-grid" id="pi-theme-grid" style="margin-top:0;"></div>
+    </div>
+
+    <div class="pi-section">
+      <div class="pi-section-title">Exclusive modes</div>
+      <div class="pi-card">
+        <div class="pi-icon">&#9680;</div>
+        <div class="pi-info">
+          <div class="name" id="pi-name-zen">Zen Mode</div>
+          <div class="desc">No countdown timer, no lives lost to the clock &mdash; solve at your own pace.</div>
+        </div>
+        <button class="pi-price-btn" data-buy="zen"><span class="pi-symbol">&pi;</span> 1.5</button>
+      </div>
+      <div class="pi-card">
+        <div class="pi-icon">&#9881;</div>
+        <div class="pi-info">
+          <div class="name" id="pi-name-custom">Custom Puzzle Generator</div>
+          <div class="desc">Pick your own grid size and number range instead of the fixed difficulty presets.</div>
+        </div>
+        <button class="pi-price-btn" data-buy="custom"><span class="pi-symbol">&pi;</span> 2</button>
+      </div>
+    </div>
+
+    <div class="pi-section">
+      <div class="pi-section-title">Subscription</div>
+      <div class="pi-pass">
+        <div class="best-badge">Best value</div>
+        <h3>Genius Pass</h3>
+        <div class="sub">Everything unlocked for 30 days</div>
+        <div class="pass-price">&pi; 4.99 <span>/ month</span></div>
+        <ul>
+          <li>Every difficulty level, including Hard, Expert &amp; Genius</li>
+          <li>Unlimited hints and undos</li>
+          <li>All themes, current and future</li>
+          <li>Zen Mode and the custom puzzle generator</li>
+        </ul>
+        <button class="btn btn-primary btn-block" id="pi-pass-btn" data-buy="pass">Subscribe with &pi;</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DIFFICULTY VIEW ============ -->
+<section class="view" id="view-difficulty">
+  <div class="wrap">
+    <div class="page-header">
+      <button class="icon-btn" data-nav="view-theme">&larr;</button>
+      <div>
+        <h2>Pick a difficulty</h2>
+        <div class="sub">You can change this anytime</div>
+      </div>
+    </div>
+
+    <div class="diff-list" id="diff-list"></div>
+  </div>
+</section>
+
+<!-- ============ GAME VIEW ============ -->
+<section class="view" id="view-game">
+  <div class="wrap">
+    <div class="game-topbar">
+      <div class="left">
+        <button class="icon-btn" data-nav="view-difficulty" title="Back">&larr;</button>
+        <button class="icon-btn" id="btn-restart" title="New puzzle">&#8635;</button>
+      </div>
+      <div class="game-stats">
+        <div class="stat"><div class="num" id="stat-stage">1</div><div class="lbl">Stage</div></div>
+        <div class="stat"><div class="num" id="stat-score">0</div><div class="lbl">Score</div></div>
+        <div class="stat"><div class="num" id="stat-time">0:00</div><div class="lbl">Time</div></div>
+        <div class="stat"><div class="hearts" id="stat-hearts">&hearts;&hearts;&hearts;</div><div class="lbl">Lives</div></div>
+      </div>
+    </div>
+    <div class="diff-pill" id="diff-pill">Medium</div>
+
+    <div class="grid-panel">
+      <div id="grid"></div>
+    </div>
+
+    <div class="bank-panel">
+      <div class="bank-label">Tap a blank, then tap a number</div>
+      <div id="bank"></div>
+    </div>
+
+    <div class="game-footer">
+      <button class="footer-btn" id="btn-undo">
+        <span class="n">&#8617;</span><span class="t">Undo <span class="count" id="undo-count">3</span></span>
+      </button>
+      <button class="footer-btn" id="btn-hint">
+        <span class="n">&#128161;</span><span class="t">Hint <span class="count" id="hint-count">3</span></span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OVERLAYS ============ -->
+<div class="overlay" id="overlay-win">
+  <div class="modal">
+    <div class="big-icon">&#127775;</div>
+    <h3>Solved it!</h3>
+    <p>Every row and column checks out. On to the next one.</p>
+    <div class="score-line" id="win-score">+120 points</div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-block" id="btn-next">Next Puzzle</button>
+      <div class="modal-row">
+        <button class="btn btn-ghost" data-open-stats="overlay-win">Statistics</button>
+        <button class="btn btn-ghost" data-open-leaderboard="overlay-win">Leaderboard</button>
+      </div>
+      <button class="small-link" data-nav="view-difficulty">Change difficulty</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-lose">
+  <div class="modal">
+    <div class="big-icon">&#128308;</div>
+    <h3>Out of lives</h3>
+    <p>That one got away. Want another shot at this difficulty?</p>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-block" id="btn-retry">Try Again</button>
+      <div class="modal-row">
+        <button class="btn btn-ghost" data-open-stats="overlay-lose">Statistics</button>
+        <button class="btn btn-ghost" data-open-leaderboard="overlay-lose">Leaderboard</button>
+      </div>
+      <button class="small-link" data-nav="view-difficulty">Change difficulty</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ STATISTICS OVERLAY ============ -->
+<div class="overlay" id="overlay-stats">
+  <div class="modal stats-modal-content">
+    <h3>Statistics</h3>
+    <div class="stats-tabs">
+      <button class="tab-button active" data-tab="current">Current Puzzle</button>
+      <button class="tab-button" data-tab="best">Best Records</button>
+      <button class="tab-button" data-tab="overall">Overall</button>
+    </div>
+    <div class="stats-scrollable-content">
+      <div class="tab-content active" id="current-tab">
+        <div class="stat-item"><span class="stat-label">Result</span><span class="stat-value" id="current-result">-</span></div>
+        <div class="stat-item"><span class="stat-label">Difficulty</span><span class="stat-value" id="current-difficulty">-</span></div>
+        <div class="stat-item"><span class="stat-label">Time</span><span class="stat-value" id="current-time">-</span></div>
+        <div class="stat-item"><span class="stat-label">Score</span><span class="stat-value" id="current-score">-</span></div>
+        <div class="stat-item"><span class="stat-label">Used</span><span class="stat-value" id="current-features-used">-</span></div>
+      </div>
+      <div class="tab-content" id="best-tab">
+        <div class="stat-item"><span class="stat-label">Best score (this difficulty)</span><span class="stat-value" id="best-score-diff">0</span></div>
+        <div class="stat-item"><span class="stat-label">Best score (overall)</span><span class="stat-value" id="best-score-overall">0</span></div>
+        <div class="stat-item"><span class="stat-label">Longest streak</span><span class="stat-value" id="best-streak">0</span></div>
+      </div>
+      <div class="tab-content" id="overall-tab">
+        <div class="stat-item"><span class="stat-label">Puzzles solved</span><span class="stat-value" id="total-solved">0</span></div>
+        <div class="stat-item"><span class="stat-label">Puzzles lost</span><span class="stat-value" id="total-lost">0</span></div>
+        <div class="stat-item"><span class="stat-label">Solve rate</span><span class="stat-value" id="solve-rate">0%</span></div>
+        <div class="stat-item"><span class="stat-label">Current streak</span><span class="stat-value" id="current-streak">0</span></div>
+        <div class="stat-item"><span class="stat-label">Hints / undos used</span><span class="stat-value" id="total-features-used">-</span></div>
+        <div class="pi-section-title" style="margin-top:16px;">By difficulty</div>
+        <div id="diff-stats-list"></div>
+      </div>
+    </div>
+    <button class="btn btn-ghost btn-block" id="stats-back-btn">Back</button>
+  </div>
+</div>
+
+<!-- ============ LEADERBOARD OVERLAY ============ -->
+<div class="overlay" id="overlay-leaderboard">
+  <div class="modal stats-modal-content">
+    <h3>Leaderboard</h3>
+    <p style="margin:0 0 12px;font-size:12.5px;color:var(--ink-soft);">Ranked by best score. Visible to everyone who plays this game.</p>
+    <div class="stats-scrollable-content">
+      <div class="name-entry-row" id="leaderboard-name-row" style="display:none;">
+        <input type="text" id="leaderboard-name-input" placeholder="Your display name" maxlength="20">
+        <button class="btn btn-primary" id="leaderboard-name-save">Join</button>
+      </div>
+      <p class="leaderboard-note" id="leaderboard-note">Loading&hellip;</p>
+      <ol class="leaderboard-list" id="leaderboard-list"></ol>
+    </div>
+    <button class="btn btn-ghost btn-block" id="leaderboard-back-btn">Back</button>
+  </div>
+</div>
+
+<div class="pi-toast" id="pi-toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
